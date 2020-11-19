@@ -1,0 +1,35 @@
+{
+	"component": "com.sap.system.python3Operator",
+	"description": "clamav",
+	"inports": [
+		{
+			"name": "input",
+			"type": "string"
+		}
+	],
+	"outports": [
+		{
+			"name": "output",
+			"type": "message"
+		}
+	],
+	"tags": {},
+	"subenginestags": {
+		"com.sap.python36": {
+			"clamav": "",
+			"deprecated": "",
+			"opensuse": "",
+			"python36": "",
+			"sapgolang": "1.13.5-bin",
+			"tornado": "5.0.2",
+			"zypper": ""
+		}
+	},
+	"config": {
+		"$type": "http://sap.com/vflow/CUSTOM.clamav.configSchema.json",
+		"script": "import boto3\r\nimport logging\r\nimport time\r\nimport os\r\n\r\n\r\nlogging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')\r\n\r\n#Get Configuration parameters\r\nconfparam1 = api.config.param1\r\napi.logger.info(\"Config parameter (confparam1): \" + confparam1  )\r\n\r\n\r\n#Example.... avoid hard coding credentials in an actual scenario\r\ns3_client = boto3.client(\r\n    's3',\r\n    region_name='eu-central-1',\r\n    # Hard coded strings as credentials, not recommended.\r\n    aws_access_key_id='<KEY>',\r\n    aws_secret_access_key='<SECRET>'\r\n)\r\n\r\n\r\n\r\ndef on_input(filename):\r\n  api.logger.info(\"Filename:\"+filename)\r\n  \r\n  \r\n\r\n  try :\r\n      s3_client.download_file('diclamav1', filename, filename)\r\n      status =  os.popen(\"clamscan \" + filename).read()\r\n      os.system(\"rm \" + filename)\r\n  except :\r\n      status = \"Exception occured running clamd\"\r\n\r\n  obj ={\"filename\": filename , \"status\": status }\r\n  msgout = api.Message( obj)\r\n  api.send( \"output\", msgout)\r\n\r\n  \r\napi.set_port_callback(\"input\", on_input)\r\n\r\n## Add if required\r\n#api.add_shutdown_handler(shtdown)",
+		"param1": "some default value"
+	},
+	"versionStatus": "active",
+	"icon": "puzzle-piece"
+}
